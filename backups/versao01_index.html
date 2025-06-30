@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adubos Real - Desafio da Safra</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Tela de Boas-Vindas -->
+    <div id="welcome-screen" class="screen">
+        <div class="welcome-container">
+            <img src="assets/logo.png" alt="Adubos Real" class="logo">
+            <h1>Bem-vindo ao Desafio da Safra!</h1>
+            <p>Teste seus conhecimentos sobre café e concorra a prêmios incríveis!</p>
+            <button id="start-challenge-btn" class="btn-primary">Começar o Desafio!</button>
+        </div>
+    </div>
+
+    <!-- Tela Inicial e Ranking -->
+    <div id="home-screen" class="screen">
+        <div class="home-container">
+            <h1>Desafio da Safra</h1>
+            <div class="ranking-section">
+                <h2>🏆 Ranking dos Melhores</h2>
+                <div id="ranking-list" class="ranking-list">
+                    <!-- Ranking será populado dinamicamente -->
+                </div>
+            </div>
+            <button id="participate-btn" class="btn-primary">Quero Participar!</button>
+        </div>
+    </div>
+
+    <!-- Tela de Quiz -->
+    <div id="quiz-screen" class="screen">
+        <div class="quiz-container">
+            <div class="quiz-header">
+                <div class="progress-info">
+                    <span id="question-counter">Pergunta 1 de 5</span>
+                </div>
+                <div class="timer-container">
+                    <div class="timer-bar">
+                        <div id="timer-progress" class="timer-progress"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question-container">
+                <h2 id="question-text">Carregando pergunta...</h2>
+                <div class="options-container">
+                    <button class="option-btn" data-option="0">
+                        <span class="option-letter">A</span>
+                        <span class="option-text">Opção A</span>
+                    </button>
+                    <button class="option-btn" data-option="1">
+                        <span class="option-letter">B</span>
+                        <span class="option-text">Opção B</span>
+                    </button>
+                    <button class="option-btn" data-option="2">
+                        <span class="option-letter">C</span>
+                        <span class="option-text">Opção C</span>
+                    </button>
+                    <button class="option-btn" data-option="3">
+                        <span class="option-letter">D</span>
+                        <span class="option-text">Opção D</span>
+                    </button>
+                </div>
+                <div id="explanation" class="explanation" style="display: none;">
+                    <p id="explanation-text"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela de Resultado -->
+    <div id="result-screen" class="screen">
+        <div class="result-container">
+            <div class="confetti-container" id="confetti-container"></div>
+            <h1>🎉 Parabéns!</h1>
+            <div class="result-info">
+                <div class="score-display">
+                    <h2>Seu Resultado</h2>
+                    <div class="score-circle">
+                        <span id="final-score">0</span>
+                        <span class="score-label">/ 5</span>
+                    </div>
+                </div>
+                <div class="time-display">
+                    <p>Tempo total: <span id="total-time">0</span> segundos</p>
+                </div>
+            </div>
+            <div class="player-form">
+                <h3>Salve seu resultado!</h3>
+                <div class="form-group">
+                    <label for="player-name">Nome completo:</label>
+                    <input type="text" id="player-name" placeholder="Digite seu nome" required>
+                </div>
+                <div class="form-group">
+                    <label for="player-whatsapp">WhatsApp (opcional):</label>
+                    <input type="tel" id="player-whatsapp" placeholder="(11) 99999-9999">
+                </div>
+                <button id="save-and-spin-btn" class="btn-primary">Salvar e Girar a Roleta!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela da Roleta -->
+    <div id="roulette-screen" class="screen">
+        <div class="roulette-container">
+            <h1>🎰 Roleta de Prêmios</h1>
+            <div class="roulette-wrapper">
+                <div id="roulette" class="roulette">
+                    <div class="roulette-slice" style="--slice-color: #FF6B6B;">Kit Básico</div>
+                    <div class="roulette-slice" style="--slice-color: #4ECDC4;">Kit Intermediário</div>
+                    <div class="roulette-slice" style="--slice-color: #45B7D1;">Kit Avançado</div>
+                    <div class="roulette-slice" style="--slice-color: #96CEB4;">Kit Premium</div>
+                    <div class="roulette-slice" style="--slice-color: #FFEAA7;">Kit Especial</div>
+                </div>
+                <div class="roulette-pointer"></div>
+            </div>
+            <button id="spin-btn" class="btn-primary">Girar a Roleta!</button>
+        </div>
+    </div>
+
+    <!-- Tela de Confirmação do Prêmio -->
+    <div id="prize-screen" class="screen">
+        <div class="prize-container">
+            <h1>🎁 Parabéns!</h1>
+            <div class="prize-info">
+                <h2 id="player-name-display">Jogador</h2>
+                <p>Você ganhou:</p>
+                <div class="prize-display">
+                    <h3 id="prize-name">Prêmio</h3>
+                    <p id="prize-description">Descrição do prêmio</p>
+                </div>
+            </div>
+            <button id="finish-btn" class="btn-primary">Finalizar</button>
+        </div>
+    </div>
+
+    <!-- Tela Final e Reset -->
+    <div id="share-screen" class="screen">
+        <div class="share-container">
+            <h1>Obrigado por participar!</h1>
+            <div class="final-summary">
+                <h2>Seu Desempenho</h2>
+                <p>Acertos: <span id="summary-score">0</span>/5</p>
+                <p>Tempo: <span id="summary-time">0</span> segundos</p>
+                <p>Prêmio: <span id="summary-prize">-</span></p>
+            </div>
+            <div class="social-info">
+                <p>Siga-nos nas redes sociais para mais novidades!</p>
+                <div class="social-links">
+                    <a href="#" class="social-link">Instagram</a>
+                    <a href="#" class="social-link">Facebook</a>
+                    <a href="#" class="social-link">WhatsApp</a>
+                </div>
+            </div>
+            <button id="restart-btn" class="btn-primary">Reiniciar para o Próximo Jogador</button>
+        </div>
+    </div>
+
+    <!-- Sons -->
+    <audio id="correct-sound" src="assets/correct.mp3"></audio>
+    <audio id="wrong-sound" src="assets/wrong.mp3"></audio>
+    <audio id="spin-sound" src="assets/spin.mp3"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html> 
