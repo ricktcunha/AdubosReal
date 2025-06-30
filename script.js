@@ -1,530 +1,587 @@
-// Estado global do jogo
-const gameState = {
-    currentScreen: 'welcome',
-    playerName: '',
+// Objeto de Estado - Primeira declaração conforme especificado
+let gameState = {
+    currentScreen: '#welcome-screen',
     score: 0,
-    timeSpent: 0,
-    currentQuestion: 0,
+    currentQuestionIndex: 0,
+    startTime: null,
+    endTime: null,
+    playerName: '',
     questions: [
         {
+            question: "Qual é o período ideal para a colheita do café arábica no Brasil?",
+            options: [
+                "Janeiro a Março",
+                "Maio a Agosto", 
+                "Setembro a Dezembro",
+                "Abril a Junho"
+            ],
+            correctAnswer: 1,
+            explanation: "O período ideal para colheita do café arábica no Brasil é de maio a agosto, quando os grãos estão maduros e com melhor qualidade."
+        },
+        {
+            question: "Qual nutriente é mais importante para o desenvolvimento das raízes do cafeeiro?",
+            options: [
+                "Nitrogênio (N)",
+                "Fósforo (P)",
+                "Potássio (K)",
+                "Cálcio (Ca)"
+            ],
+            correctAnswer: 1,
+            explanation: "O fósforo (P) é essencial para o desenvolvimento das raízes, florescimento e formação dos grãos do café."
+        },
+        {
+            question: "Qual é a temperatura ideal para o cultivo do café arábica?",
+            options: [
+                "15-20°C",
+                "20-25°C",
+                "25-30°C",
+                "30-35°C"
+            ],
+            correctAnswer: 1,
+            explanation: "A temperatura ideal para o café arábica é entre 20-25°C, proporcionando melhor desenvolvimento e qualidade dos grãos."
+        },
+        {
+            question: "Qual prática é fundamental para manter a produtividade do cafezal?",
+            options: [
+                "Poda anual",
+                "Adubação foliar",
+                "Irrigação constante",
+                "Controle de pragas"
+            ],
+            correctAnswer: 0,
+            explanation: "A poda anual é fundamental para renovar os ramos produtivos e manter a produtividade do cafezal ao longo dos anos."
+        },
+        {
             question: "Qual é o pH ideal do solo para o cultivo do café?",
-            options: ["4.5 - 5.5", "6.0 - 7.0", "7.5 - 8.5", "3.0 - 4.0"],
-            correct: 0,
-            explanation: "O pH ideal para o café está entre 4.5 e 5.5, pois o café é uma planta acidófila."
-        },
-        {
-            question: "Qual é a época ideal para adubação do café?",
-            options: ["Durante a colheita", "No início das chuvas", "No período seco", "Qualquer época do ano"],
-            correct: 1,
-            explanation: "A adubação deve ser feita no início das chuvas para melhor aproveitamento dos nutrientes."
-        },
-        {
-            question: "Qual nutriente é mais importante para a formação dos grãos do café?",
-            options: ["Nitrogênio", "Fósforo", "Potássio", "Cálcio"],
-            correct: 2,
-            explanation: "O potássio é essencial para a formação e qualidade dos grãos do café."
-        },
-        {
-            question: "Quantos anos leva para um pé de café começar a produzir?",
-            options: ["1 ano", "2-3 anos", "5-6 anos", "8-10 anos"],
-            correct: 1,
-            explanation: "O café começa a produzir entre 2 e 3 anos após o plantio."
-        },
-        {
-            question: "Qual é a principal praga do cafeeiro?",
-            options: ["Bicho-mineiro", "Cigarra", "Lagarta", "Pulgão"],
-            correct: 0,
-            explanation: "O bicho-mineiro é a principal praga que ataca as folhas do cafeeiro."
+            options: [
+                "4.0-5.0",
+                "5.5-6.5",
+                "6.5-7.5",
+                "7.5-8.5"
+            ],
+            correctAnswer: 1,
+            explanation: "O pH ideal do solo para o café é entre 5.5-6.5, proporcionando melhor disponibilidade de nutrientes para a planta."
         }
-    ],
-    timer: null,
-    timeLeft: 15,
-    isSpinning: false,
-    startTime: null
+    ]
 };
 
-// Inicialização
-document.addEventListener('DOMContentLoaded', function() {
-    loadRanking();
-    showScreen('welcome');
+// Variáveis globais
+let timerTimeout;
+let timerInterval;
+let currentTimerProgress;
+let rouletteFinalAngle;
+let selectedPrize;
+let isRouletteSpinning = false;
+
+// Função de inicialização - chamada na carga da página
+function init() {
+    // Popula o array de perguntas (já está populado acima)
     
-    // Adicionar confetti
-    createConfetti();
-});
-
-// Função para mostrar telas com transições melhoradas
-function showScreen(screenName) {
-    // Esconder todas as telas com transição suave
-    const allScreens = document.querySelectorAll('.screen');
-    allScreens.forEach(screen => {
-        if (screen.classList.contains('active')) {
-            screen.style.opacity = '0';
-            screen.style.transform = 'translateY(30px) scale(0.95)';
-            setTimeout(() => {
-                screen.classList.remove('active');
-            }, 300);
-        }
-    });
-
-    // Mostrar nova tela com delay para transição
-    setTimeout(() => {
-        const targetScreen = document.getElementById(screenName + '-screen');
-        if (targetScreen) {
-            targetScreen.classList.add('active');
-            gameState.currentScreen = screenName;
-            
-            // Adicionar animação de entrada para o container
-            const container = targetScreen.querySelector('.welcome-container, .home-container, .institutional-container, .quiz-container, .result-container, .roulette-container, .prize-container, .share-container');
-            if (container) {
-                container.style.animation = 'containerSlideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-            }
-            
-            // Configurações específicas por tela
-            switch(screenName) {
-                case 'home':
-                    updateRanking();
-                    break;
-                case 'quiz':
-                    startQuiz();
-                    break;
-                case 'result':
-                    showResult();
-                    break;
-                case 'roulette':
-                    setupRoulette();
-                    break;
-                case 'prize':
-                    showPrize();
-                    break;
-            }
-        }
-    }, 350);
+    // Mostra a tela de boas-vindas
+    showScreen('#welcome-screen');
+    
+    // Associa os event listeners
+    setupEventListeners();
+    
+    // Inicializa o teclado virtual
+    initVirtualKeyboard();
 }
 
-// Função para criar confetti
-function createConfetti() {
-    const confettiContainer = document.createElement('div');
-    confettiContainer.className = 'confetti-container';
-    document.body.appendChild(confettiContainer);
-
-    for (let i = 0; i < 50; i++) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti';
-        confetti.style.left = Math.random() * 100 + '%';
-        confetti.style.animationDelay = Math.random() * 3 + 's';
-        confetti.style.backgroundColor = ['#f39c12', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'][Math.floor(Math.random() * 5)];
-        confettiContainer.appendChild(confetti);
+// Função para controlar a visibilidade das telas
+function showScreen(screenId) {
+    // Esconde todas as telas
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+    
+    // Mostra a tela solicitada
+    const targetScreen = document.querySelector(screenId);
+    if (targetScreen) {
+        targetScreen.classList.add('active');
+        gameState.currentScreen = screenId;
+        
+        // Atualiza o ranking se for a tela inicial
+        if (screenId === '#home-screen') {
+            updateRanking();
+        }
     }
 }
 
-// Função para iniciar o quiz
-function startQuiz() {
-    gameState.currentQuestion = 0;
-    gameState.score = 0;
-    gameState.startTime = Date.now();
-    gameState.timeLeft = 15;
+// Função para ir para a tela inicial (botão cancelar)
+function goToHome() {
+    showScreen('#home-screen');
+}
+
+// Função para atualizar o ranking
+function updateRanking() {
+    const rankingList = document.getElementById('ranking-list');
+    const rankings = getRankings();
     
-    showQuestion();
+    rankingList.innerHTML = '';
+    
+    if (rankings.length === 0) {
+        rankingList.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Seja o primeiro a participar!</p>';
+        return;
+    }
+    
+    rankings.forEach((player, index) => {
+        const rankingItem = document.createElement('div');
+        rankingItem.className = 'ranking-item';
+        rankingItem.innerHTML = `
+            <span class="ranking-position">${index + 1}º</span>
+            <span class="ranking-name">${player.name}</span>
+            <span class="ranking-score">${player.score}/5</span>
+        `;
+        rankingList.appendChild(rankingItem);
+    });
+}
+
+// Função para obter rankings do localStorage
+function getRankings() {
+    const rankings = localStorage.getItem('quizRankings');
+    return rankings ? JSON.parse(rankings) : [];
+}
+
+// Função para salvar rankings no localStorage
+function updateRankingStorage() {
+    const rankings = getRankings();
+    const newPlayer = {
+        name: gameState.playerName,
+        score: gameState.score,
+        time: gameState.endTime - gameState.startTime,
+        date: new Date().toISOString()
+    };
+    
+    rankings.push(newPlayer);
+    rankings.sort((a, b) => b.score - a.score || a.time - b.time);
+    rankings.splice(10); // Mantém apenas os 10 melhores
+    
+    localStorage.setItem('quizRankings', JSON.stringify(rankings));
+}
+
+// Função para iniciar o jogo (vai para tela institucional)
+function startGame() {
+    showScreen('#institutional-screen');
+}
+
+// Função para iniciar o quiz (após tela institucional)
+function startQuiz() {
+    // Reseta o estado do jogo
+    gameState.score = 0;
+    gameState.currentQuestionIndex = 0;
+    gameState.startTime = new Date();
+    
+    // Mostra a tela do quiz
+    showScreen('#quiz-screen');
+    
+    // Carrega a primeira pergunta
+    loadQuestion();
+}
+
+// Função para carregar uma pergunta
+function loadQuestion() {
+    const question = gameState.questions[gameState.currentQuestionIndex];
+    
+    // Atualiza o contador de perguntas
+    document.getElementById('question-counter').textContent = 
+        `Pergunta ${gameState.currentQuestionIndex + 1} de 5`;
+    
+    // Carrega a pergunta
+    document.getElementById('question-text').textContent = question.question;
+    
+    // Carrega as opções
+    const optionButtons = document.querySelectorAll('.option-btn');
+    optionButtons.forEach((btn, index) => {
+        btn.querySelector('.option-text').textContent = question.options[index];
+        btn.classList.remove('correct', 'wrong');
+        btn.disabled = false;
+    });
+    
+    // Esconde a explicação
+    document.getElementById('explanation').style.display = 'none';
+    
+    // Reseta e inicia o cronômetro
+    resetTimer();
     startTimer();
 }
 
-// Função para mostrar questão
-function showQuestion() {
-    const question = gameState.questions[gameState.currentQuestion];
-    const questionText = document.getElementById('question-text');
-    const optionsContainer = document.getElementById('options-container');
-    const progressInfo = document.getElementById('progress-info');
+// Função para resetar o cronômetro
+function resetTimer() {
+    const timerSeconds = document.getElementById('timer-seconds');
+    const timerProgressRing = document.querySelector('.timer-progress-ring');
     
-    questionText.textContent = question.question;
-    progressInfo.textContent = `Questão ${gameState.currentQuestion + 1} de ${gameState.questions.length}`;
+    // Reseta o texto
+    timerSeconds.textContent = '15';
     
-    optionsContainer.innerHTML = '';
-    question.options.forEach((option, index) => {
-        const button = document.createElement('button');
-        button.className = 'option-btn';
-        button.innerHTML = `
-            <div class="option-letter">${String.fromCharCode(65 + index)}</div>
-            <div class="option-text">${option}</div>
-        `;
-        button.addEventListener('click', () => selectOption(index));
-        optionsContainer.appendChild(button);
-    });
-    
-    // Reset timer para nova questão
-    gameState.timeLeft = 15;
-    resetTimer();
+    // Reseta a animação
+    timerProgressRing.style.animation = 'none';
+    timerProgressRing.offsetHeight; // Força reflow
+    timerProgressRing.style.animation = 'timer-empty 15s linear infinite';
 }
 
-// Função para selecionar opção
-function selectOption(selectedIndex) {
-    const question = gameState.questions[gameState.currentQuestion];
-    const buttons = document.querySelectorAll('.option-btn');
+// Função para iniciar o cronômetro
+function startTimer() {
+    let timeLeft = 15;
+    const timerSeconds = document.getElementById('timer-seconds');
+    const timerProgressRing = document.querySelector('.timer-progress-ring');
     
-    // Desabilitar todos os botões
-    buttons.forEach(btn => btn.disabled = true);
-    
-    // Marcar resposta correta e incorreta com animação
-    buttons.forEach((btn, index) => {
-        if (index === question.correct) {
-            btn.classList.add('correct');
-        } else if (index === selectedIndex && index !== question.correct) {
-            btn.classList.add('wrong');
-        }
-    });
-    
-    // Calcular pontuação
-    if (selectedIndex === question.correct) {
-        gameState.score += Math.max(1, gameState.timeLeft);
+    // Cancela timers anteriores se existirem
+    if (timerTimeout) {
+        clearTimeout(timerTimeout);
+    }
+    if (timerInterval) {
+        clearInterval(timerInterval);
     }
     
-    // Mostrar explicação com animação suave
-    setTimeout(() => {
-        const explanation = document.createElement('div');
-        explanation.className = 'explanation';
-        explanation.textContent = question.explanation;
-        explanation.style.animation = 'slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-        document.querySelector('.quiz-container').appendChild(explanation);
-    }, 800);
+    // Inicia o timer de 15 segundos
+    timerTimeout = setTimeout(() => {
+        handleAnswer(null); // Tempo esgotado
+    }, 15000);
     
-    // Próxima questão após delay maior para melhor experiência
-    setTimeout(() => {
-        gameState.currentQuestion++;
-        if (gameState.currentQuestion < gameState.questions.length) {
-            showQuestion();
-        } else {
-            endQuiz();
-        }
-    }, 5000); // Aumentado para 5 segundos para melhor leitura
-}
-
-// Função para iniciar timer
-function startTimer() {
-    gameState.timer = setInterval(() => {
-        gameState.timeLeft--;
-        updateTimerDisplay();
+    // Atualiza a contagem e a animação a cada segundo
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        timerSeconds.textContent = timeLeft;
         
-        if (gameState.timeLeft <= 0) {
-            clearInterval(gameState.timer);
-            // Auto-responder com primeira opção se tempo acabar
-            selectOption(0);
+        // Atualiza o clip-path para esvaziar progressivamente
+        const progress = (timeLeft / 15) * 50; // 50% é o raio máximo
+        timerProgressRing.style.clipPath = `circle(${progress}% at center)`;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
         }
     }, 1000);
 }
 
-// Função para resetar timer
-function resetTimer() {
-    if (gameState.timer) {
-        clearInterval(gameState.timer);
+// Função para processar a resposta do usuário
+function handleAnswer(selectedOption) {
+    // Cancela os timers
+    if (timerTimeout) {
+        clearTimeout(timerTimeout);
+        timerTimeout = null;
     }
-    gameState.timeLeft = 15;
-    updateTimerDisplay();
-    startTimer();
-}
-
-// Função para atualizar display do timer
-function updateTimerDisplay() {
-    const timerText = document.getElementById('timer-text');
-    const progressRing = document.querySelector('.timer-progress-ring');
-    const roulette = document.querySelector('.roulette');
-    
-    if (timerText) {
-        timerText.textContent = gameState.timeLeft;
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
     }
     
-    if (progressRing) {
-        const progress = gameState.timeLeft / 15;
-        const clipPath = `circle(${progress * 50}% at center)`;
-        progressRing.style.clipPath = clipPath;
+    // Desabilita todos os botões
+    const optionButtons = document.querySelectorAll('.option-btn');
+    optionButtons.forEach(btn => btn.disabled = true);
+    
+    const question = gameState.questions[gameState.currentQuestionIndex];
+    const correctAnswer = question.correctAnswer;
+    
+    // Verifica se a resposta está correta
+    if (selectedOption === correctAnswer) {
+        // Resposta correta
+        gameState.score++;
+        optionButtons[selectedOption].classList.add('correct');
+        playSound('correct-sound');
+    } else {
+        // Resposta errada ou tempo esgotado
+        if (selectedOption !== null) {
+            optionButtons[selectedOption].classList.add('wrong');
+        }
+        optionButtons[correctAnswer].classList.add('correct');
+        playSound('wrong-sound');
     }
     
-    // Sincronizar borda da roleta com o timer
-    if (roulette) {
-        const progress = gameState.timeLeft / 15;
-        const borderWidth = 2 + (progress * 6); // De 2px a 8px
-        roulette.style.borderWidth = `${borderWidth}px`;
-    }
+    // Mostra a explicação
+    const explanation = document.getElementById('explanation');
+    const explanationText = document.getElementById('explanation-text');
+    explanationText.textContent = question.explanation;
+    explanation.style.display = 'block';
+    
+    // Aguarda 5 segundos (aumentado de 3 para 5) e vai para a próxima pergunta
+    setTimeout(() => {
+        gameState.currentQuestionIndex++;
+        
+        if (gameState.currentQuestionIndex < 5) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }, 5000);
 }
 
-// Função para finalizar quiz
-function endQuiz() {
-    clearInterval(gameState.timer);
-    gameState.timeSpent = Math.floor((Date.now() - gameState.startTime) / 1000);
-    showScreen('result');
-}
-
-// Função para mostrar resultado
+// Função para mostrar o resultado
 function showResult() {
-    const finalScore = document.getElementById('final-score');
-    const timeDisplay = document.getElementById('time-display');
+    // Registra o tempo final
+    gameState.endTime = new Date();
     
-    if (finalScore) {
-        finalScore.textContent = gameState.score;
-    }
+    // Calcula o tempo total
+    const totalTime = Math.round((gameState.endTime - gameState.startTime) / 1000);
     
-    if (timeDisplay) {
-        const minutes = Math.floor(gameState.timeSpent / 60);
-        const seconds = gameState.timeSpent % 60;
-        timeDisplay.textContent = `Tempo: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+    // Mostra a tela de resultado
+    showScreen('#result-screen');
+    
+    // Popula os dados
+    document.getElementById('final-score').textContent = gameState.score;
+    document.getElementById('total-time').textContent = totalTime;
+    
+    // Ativa a animação de confetes
+    createConfetti();
+}
+
+// Função para criar confetes
+function createConfetti() {
+    const confettiContainer = document.getElementById('confetti-container');
+    confettiContainer.innerHTML = '';
+    
+    const colors = ['#f39c12', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+    
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 3 + 's';
+        confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        confettiContainer.appendChild(confetti);
     }
 }
 
-// Função para configurar roleta
-function setupRoulette() {
-    const roulette = document.querySelector('.roulette');
-    const spinButton = document.getElementById('spin-button');
+// Função para salvar dados e prosseguir
+function saveAndProceed() {
+    const playerName = document.getElementById('player-name').value.trim();
     
-    if (roulette && spinButton) {
-        roulette.style.transform = 'rotate(0deg)';
-        gameState.isSpinning = false;
-        spinButton.disabled = false;
-        spinButton.textContent = 'Girar Roleta';
+    // Validação do nome
+    if (playerName.length < 3) {
+        document.getElementById('player-name').classList.add('error');
+        return;
     }
+    
+    // Remove erro se existir
+    document.getElementById('player-name').classList.remove('error');
+    
+    // Salva os dados
+    gameState.playerName = playerName;
+    
+    // Atualiza o ranking
+    updateRankingStorage();
+    
+    // Vai para a roleta
+    showScreen('#roulette-screen');
+    prepareRoulette();
 }
 
-// Função para girar roleta
-function spinRoulette() {
-    if (gameState.isSpinning) return;
+// Função para preparar a roleta
+function prepareRoulette() {
+    // Reseta o estado da roleta
+    isRouletteSpinning = false;
     
-    const roulette = document.querySelector('.roulette');
-    const spinButton = document.getElementById('spin-button');
+    // Define as fatias da roleta baseado no score
+    const prizes = [
+        { name: 'Kit 1', description: 'Amostra de adubo + brinde' },
+        { name: 'Kit 2', description: 'Amostra + boné + camiseta' },
+        { name: 'Kit 3', description: 'Kit completo + consultoria' },
+        { name: 'Kit 4', description: 'Kit premium + visita técnica' },
+        { name: 'Kit 5', description: 'Kit especial + desconto exclusivo' }
+    ];
     
-    if (!roulette || !spinButton) return;
-    
-    gameState.isSpinning = true;
-    spinButton.disabled = true;
-    spinButton.textContent = 'Girando...';
-    spinButton.style.opacity = '0.7';
-    
-    // Determinar prêmio baseado na pontuação
+    // Calcula o prêmio baseado no score
     let prizeIndex;
-    if (gameState.score >= 80) {
+    if (gameState.score <= 1) {
         prizeIndex = 0; // Kit 1
-    } else if (gameState.score >= 60) {
+    } else if (gameState.score === 2) {
         prizeIndex = 1; // Kit 2
-    } else if (gameState.score >= 40) {
+    } else if (gameState.score === 3) {
         prizeIndex = 2; // Kit 3
-    } else if (gameState.score >= 20) {
+    } else if (gameState.score === 4) {
         prizeIndex = 3; // Kit 4
     } else {
         prizeIndex = 4; // Kit 5
     }
     
-    // Calcular rotação para parar no prêmio correto
-    const baseRotation = 360 * 5; // 5 voltas completas
-    const prizeAngle = 72 * prizeIndex; // Cada fatia tem 72 graus
-    const finalRotation = baseRotation + (360 - prizeAngle);
+    selectedPrize = prizes[prizeIndex];
     
-    // Aplicar animação com easing mais suave
-    roulette.style.transition = 'transform 4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-    roulette.style.transform = `rotate(${finalRotation}deg)`;
+    // Calcula o ângulo final (cada fatia tem 72 graus)
+    const sliceAngle = 72;
+    const targetAngle = prizeIndex * sliceAngle;
     
-    // Salvar prêmio ganho
-    gameState.wonPrize = prizeIndex;
+    // Adiciona voltas extras para efeito dramático
+    rouletteFinalAngle = targetAngle + (360 * 5); // 5 voltas + ângulo final
     
-    // Habilitar botão após animação com feedback visual
-    setTimeout(() => {
-        gameState.isSpinning = false;
-        spinButton.disabled = false;
-        spinButton.textContent = 'Ver Prêmio';
-        spinButton.style.opacity = '1';
-        spinButton.style.animation = 'pulse 0.5s ease';
-        spinButton.onclick = () => showScreen('prize');
-    }, 4000);
-    
-    // Fallback para caso a animação trave
-    setTimeout(() => {
-        if (gameState.isSpinning) {
-            gameState.isSpinning = false;
-            spinButton.disabled = false;
-            spinButton.textContent = 'Ver Prêmio';
-            spinButton.style.opacity = '1';
-            spinButton.onclick = () => showScreen('prize');
-        }
-    }, 5000);
+    // Reativa o botão de girar
+    const spinBtn = document.getElementById('spin-btn');
+    spinBtn.disabled = false;
 }
 
-// Função para mostrar prêmio
-function showPrize() {
-    const prizeNames = ['Kit 1', 'Kit 2', 'Kit 3', 'Kit 4', 'Kit 5'];
-    const prizeDescriptions = [
-        'Kit Premium com produtos exclusivos',
-        'Kit Especial com fertilizantes avançados',
-        'Kit Básico com produtos essenciais',
-        'Kit Iniciante com produtos básicos',
-        'Kit Amostra com produtos de teste'
-    ];
-    
-    const prizeName = document.getElementById('prize-name');
-    const prizeDescription = document.getElementById('prize-description');
-    
-    if (prizeName && prizeDescription) {
-        prizeName.textContent = prizeNames[gameState.wonPrize];
-        prizeDescription.textContent = prizeDescriptions[gameState.wonPrize];
-    }
-}
-
-// Função para salvar jogador
-function savePlayer() {
-    const nameInput = document.getElementById('player-name');
-    const name = nameInput.value.trim();
-    
-    if (name.length < 2) {
-        nameInput.classList.add('error');
-        setTimeout(() => nameInput.classList.remove('error'), 600);
-        return;
+// Função para girar a roleta
+function spinRoulette() {
+    if (isRouletteSpinning) {
+        return; // Evita múltiplos cliques
     }
     
-    gameState.playerName = name;
-    saveToRanking(name, gameState.score, gameState.timeSpent);
-    showScreen('share');
-}
-
-// Função para adicionar letra ao nome
-function addLetter(letter) {
-    const nameInput = document.getElementById('player-name');
-    if (letter === 'backspace') {
-        nameInput.value = nameInput.value.slice(0, -1);
-    } else if (letter === 'space') {
-        nameInput.value += ' ';
-    } else if (nameInput.value.length < 20) {
-        nameInput.value += letter;
-    }
-}
-
-// Função para salvar no ranking
-function saveToRanking(name, score, time) {
-    let ranking = JSON.parse(localStorage.getItem('quizRanking') || '[]');
+    const roulette = document.getElementById('roulette');
+    const spinBtn = document.getElementById('spin-btn');
     
-    ranking.push({
-        name: name,
-        score: score,
-        time: time,
-        date: new Date().toISOString()
-    });
+    // Marca como girando
+    isRouletteSpinning = true;
     
-    // Ordenar por pontuação (maior primeiro) e depois por tempo (menor primeiro)
-    ranking.sort((a, b) => {
-        if (b.score !== a.score) {
-            return b.score - a.score;
-        }
-        return a.time - b.time;
-    });
+    // Desabilita o botão
+    spinBtn.disabled = true;
     
-    // Manter apenas os 10 melhores
-    ranking = ranking.slice(0, 10);
+    // Toca o som
+    playSound('spin-sound');
     
-    localStorage.setItem('quizRanking', JSON.stringify(ranking));
-}
-
-// Função para carregar ranking
-function loadRanking() {
-    const ranking = JSON.parse(localStorage.getItem('quizRanking') || '[]');
-    return ranking;
-}
-
-// Função para atualizar display do ranking
-function updateRanking() {
-    const rankingList = document.getElementById('ranking-list');
-    const ranking = loadRanking();
+    // Aplica a rotação
+    roulette.style.transform = `rotate(${rouletteFinalAngle}deg)`;
     
-    if (rankingList) {
-        rankingList.innerHTML = '';
+    // Adiciona listener para o fim da animação
+    const onTransitionEnd = function() {
+        roulette.removeEventListener('transitionend', onTransitionEnd);
         
-        ranking.forEach((player, index) => {
-            const item = document.createElement('div');
-            item.className = 'ranking-item';
-            item.innerHTML = `
-                <span class="ranking-position">${index + 1}º</span>
-                <span class="ranking-name">${player.name}</span>
-                <span class="ranking-score">${player.score} pts</span>
-            `;
-            rankingList.appendChild(item);
-        });
-    }
+        // Pequeno delay para garantir que a animação terminou
+        setTimeout(() => {
+            isRouletteSpinning = false;
+            showPrize();
+        }, 500);
+    };
+    
+    roulette.addEventListener('transitionend', onTransitionEnd, { once: true });
+    
+    // Fallback: se por algum motivo o transitionend não disparar
+    setTimeout(() => {
+        if (isRouletteSpinning) {
+            isRouletteSpinning = false;
+            showPrize();
+        }
+    }, 5000); // 5 segundos de timeout
 }
 
-// Função para reiniciar jogo
+// Função para mostrar o prêmio
+function showPrize() {
+    showScreen('#prize-screen');
+    
+    // Popula os dados do prêmio
+    document.getElementById('player-name-display').textContent = gameState.playerName;
+    document.getElementById('prize-name').textContent = selectedPrize.name;
+    document.getElementById('prize-description').textContent = selectedPrize.description;
+}
+
+// Função para resetar o jogo
 function resetGame() {
-    gameState.currentScreen = 'welcome';
-    gameState.playerName = '';
+    // Reseta o estado do jogo
+    gameState.currentScreen = '#welcome-screen';
     gameState.score = 0;
-    gameState.timeSpent = 0;
-    gameState.currentQuestion = 0;
-    gameState.timeLeft = 15;
-    gameState.isSpinning = false;
+    gameState.currentQuestionIndex = 0;
     gameState.startTime = null;
-    gameState.wonPrize = null;
+    gameState.endTime = null;
+    gameState.playerName = '';
+    isRouletteSpinning = false;
     
-    if (gameState.timer) {
-        clearInterval(gameState.timer);
-        gameState.timer = null;
+    // Limpa os campos do formulário
+    document.getElementById('player-name').value = '';
+    document.getElementById('player-name').classList.remove('error');
+    
+    // Remove classes de estado da UI
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.remove('correct', 'wrong');
+        btn.disabled = false;
+    });
+    
+    // Esconde elementos temporários
+    document.getElementById('explanation').style.display = 'none';
+    
+    // Para a animação de confetes
+    document.getElementById('confetti-container').innerHTML = '';
+    
+    // Reseta a roleta
+    const roulette = document.getElementById('roulette');
+    roulette.style.transform = 'rotate(0deg)';
+    
+    // Cancela timers se existirem
+    if (timerTimeout) {
+        clearTimeout(timerTimeout);
+        timerTimeout = null;
+    }
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
     }
     
-    showScreen('welcome');
+    // Vai para a tela inicial
+    showScreen('#home-screen');
+    updateRanking();
 }
 
-// Event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    // Botões de navegação
-    const startBtn = document.getElementById('start-btn');
-    if (startBtn) {
-        startBtn.addEventListener('click', () => showScreen('home'));
+// Função para tocar sons
+function playSound(soundId) {
+    const audio = document.getElementById(soundId);
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(e => console.log('Erro ao tocar som:', e));
     }
-    
-    const playBtn = document.getElementById('play-btn');
-    if (playBtn) {
-        playBtn.addEventListener('click', () => showScreen('institutional'));
-    }
-    
-    const institutionalBtn = document.getElementById('institutional-btn');
-    if (institutionalBtn) {
-        institutionalBtn.addEventListener('click', () => showScreen('quiz'));
-    }
-    
-    const resultBtn = document.getElementById('result-btn');
-    if (resultBtn) {
-        resultBtn.addEventListener('click', () => showScreen('roulette'));
-    }
-    
-    const spinBtn = document.getElementById('spin-button');
-    if (spinBtn) {
-        spinBtn.addEventListener('click', spinRoulette);
-    }
-    
-    const prizeBtn = document.getElementById('prize-btn');
-    if (prizeBtn) {
-        prizeBtn.addEventListener('click', () => showScreen('share'));
-    }
-    
-    const saveBtn = document.getElementById('save-btn');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', savePlayer);
-    }
-    
-    const resetBtn = document.getElementById('reset-btn');
-    if (resetBtn) {
-        resetBtn.addEventListener('click', resetGame);
-    }
-    
-    const cancelBtn = document.querySelector('.cancel-btn');
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => showScreen('home'));
-    }
-    
-    // Teclado virtual
+}
+
+// Função para inicializar o teclado virtual
+function initVirtualKeyboard() {
     const keys = document.querySelectorAll('.key');
+    const input = document.getElementById('player-name');
+    
     keys.forEach(key => {
         key.addEventListener('click', () => {
-            const letter = key.textContent;
-            addLetter(letter);
+            const keyValue = key.dataset.key;
+            
+            if (keyValue === 'backspace') {
+                input.value = input.value.slice(0, -1);
+            } else if (keyValue === 'clear') {
+                input.value = '';
+            } else if (keyValue === ' ') {
+                input.value += ' ';
+            } else {
+                input.value += keyValue;
+            }
+            
+            // Remove erro se existir
+            input.classList.remove('error');
         });
     });
+}
+
+// Função para configurar event listeners
+function setupEventListeners() {
+    // Botão de começar o desafio
+    document.getElementById('start-challenge-btn').onclick = () => {
+        showScreen('#home-screen');
+    };
     
-    // Input de nome
-    const nameInput = document.getElementById('player-name');
-    if (nameInput) {
-        nameInput.addEventListener('input', () => {
-            nameInput.classList.remove('error');
-        });
-    }
-}); 
+    // Botão de participar (vai para tela institucional)
+    document.getElementById('participate-btn').onclick = startGame;
+    
+    // Botão de iniciar quiz (após tela institucional)
+    document.getElementById('start-quiz-btn').onclick = startQuiz;
+    
+    // Botões de opção do quiz
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.onclick = () => {
+            const selectedOption = parseInt(btn.dataset.option);
+            handleAnswer(selectedOption);
+        };
+    });
+    
+    // Botão de salvar e girar roleta
+    document.getElementById('save-and-spin-btn').onclick = saveAndProceed;
+    
+    // Botão de girar roleta
+    document.getElementById('spin-btn').onclick = spinRoulette;
+    
+    // Botão de finalizar
+    document.getElementById('finish-btn').onclick = () => {
+        showScreen('#share-screen');
+        
+        // Popula o resumo final
+        document.getElementById('summary-score').textContent = gameState.score;
+        document.getElementById('summary-time').textContent = 
+            Math.round((gameState.endTime - gameState.startTime) / 1000);
+        document.getElementById('summary-prize').textContent = selectedPrize.name;
+    };
+    
+    // Botão de reiniciar
+    document.getElementById('restart-btn').onclick = resetGame;
+}
+
+// Inicializa a aplicação quando a página carrega
+document.addEventListener('DOMContentLoaded', init); 
