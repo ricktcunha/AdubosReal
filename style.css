@@ -7,7 +7,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+    background: #009640;
     min-height: 100vh;
     overflow: hidden;
     padding-top: 80px; /* Espaço para o header fixo */
