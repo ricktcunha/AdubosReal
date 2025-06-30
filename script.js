@@ -577,12 +577,14 @@ function setupEventListeners() {
     // Botão de finalizar
     document.getElementById('finish-btn').onclick = () => {
         showScreen('#share-screen');
-        
         // Popula o resumo final
         document.getElementById('summary-score').textContent = gameState.score;
-        document.getElementById('summary-time').textContent = 
-            Math.round((gameState.endTime - gameState.startTime) / 1000);
-        document.getElementById('summary-prize').textContent = selectedPrize.name;
+        if (gameState.endTime && gameState.startTime) {
+            document.getElementById('summary-time').textContent = Math.round((gameState.endTime - gameState.startTime) / 1000);
+        } else {
+            document.getElementById('summary-time').textContent = '0';
+        }
+        document.getElementById('summary-prize').textContent = selectedPrize ? selectedPrize.name : '-';
     };
     
     // Botão de reiniciar
