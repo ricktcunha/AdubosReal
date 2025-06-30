@@ -85,6 +85,12 @@ function init() {
     
     // Inicializa o teclado virtual
     initVirtualKeyboard();
+    
+    // Remove confete da tela inicial
+    const confettiContainer = document.querySelector('.confetti-container');
+    if (confettiContainer) {
+        confettiContainer.remove();
+    }
 }
 
 // Função para controlar a visibilidade das telas
