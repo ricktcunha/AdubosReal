@@ -113,14 +113,15 @@ body {
 .roulette-container,
 .prize-container,
 .share-container {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 25px;
     padding: 40px;
     text-align: center;
     max-width: 600px;
     width: 100%;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Títulos */
@@ -243,67 +244,67 @@ h3 {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
-    padding: 15px;
-    background: #f8f9fa;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .progress-info {
     font-weight: 600;
     color: #4CAF50;
+    font-size: 1.1rem;
+    text-align: center;
+    flex: 1;
 }
 
 .timer-container {
     display: flex;
     align-items: center;
-}
-
-/* Cronômetro Circular */
-.circular-timer {
-    position: relative;
-    width: 60px;
-    height: 60px;
-}
-
-.timer-circle {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: #e9ecef;
-    display: flex;
-    align-items: center;
     justify-content: center;
+    flex: 1;
 }
 
-.timer-progress-ring {
+/* Cronômetro Circular com SVG */
+.timer {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+}
+
+.timer-svg {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    border-radius: 50%;
-    border: 4px solid #4CAF50;
-    animation: timer-empty 15s linear infinite;
-    transform-origin: center;
 }
 
-@keyframes timer-empty {
-    0% {
-        border-color: #4CAF50;
-        clip-path: circle(50% at center);
-    }
-    100% {
-        border-color: #4CAF50;
-        clip-path: circle(0% at center);
-    }
+.timer-background {
+    transition: stroke 0.3s ease;
 }
 
-.timer-text {
-    font-size: 1.2rem;
+.timer-progress-circle {
+    transition: stroke-dashoffset 0.1s linear;
+    filter: drop-shadow(0 2px 4px rgba(76, 175, 80, 0.3));
+}
+
+.timer-number {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.4rem;
     font-weight: bold;
     color: #2c3e50;
-    z-index: 1;
+    font-family: 'Montserrat', sans-serif;
+    z-index: 2;
+    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    pointer-events: none;
 }
 
 .question-container {
@@ -311,33 +312,40 @@ h3 {
 }
 
 #question-text {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     color: #2c3e50;
-    margin-bottom: 30px;
+    margin-bottom: 35px;
     line-height: 1.6;
+    font-weight: 600;
+    text-align: center;
+    padding: 0 10px;
 }
 
 .options-container {
     display: grid;
-    gap: 15px;
-    margin-bottom: 20px;
+    gap: 18px;
+    margin-bottom: 25px;
+    padding: 0 10px;
 }
 
 .option-btn {
     display: flex;
     align-items: center;
-    padding: 15px 20px;
+    padding: 18px 22px;
     background: white;
     border: 2px solid #e9ecef;
     border-radius: 15px;
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: left;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: 60px;
 }
 
 .option-btn:hover {
     border-color: #4CAF50;
-    transform: translateX(5px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
 }
 
 .option-btn.correct {
@@ -353,30 +361,34 @@ h3 {
 }
 
 .option-letter {
-    background: #4CAF50;
+    background: linear-gradient(45deg, #4CAF50, #2E7D32);
     color: white;
-    width: 30px;
-    height: 30px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    margin-right: 15px;
+    margin-right: 18px;
     flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
 }
 
 .option-text {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 500;
+    line-height: 1.4;
 }
 
 .explanation {
-    background: #e3f2fd;
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 20px;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    padding: 25px;
+    border-radius: 15px;
+    margin-top: 25px;
     animation: slideIn 0.5s ease;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
 }
 
 @keyframes slideIn {
@@ -390,6 +402,30 @@ h3 {
     }
 }
 
+/* Botão de próxima pergunta */
+#next-question-btn {
+    margin-top: 20px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    background: linear-gradient(45deg, #2196f3, #1976d2);
+    border: none;
+    border-radius: 25px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+    width: fit-content;
+}
+
+#next-question-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+}
+
 /* Resultado */
 .result-info {
     display: flex;
@@ -401,6 +437,12 @@ h3 {
 
 .score-display {
     text-align: center;
+    width: 100%;
+}
+
+.score-display h2 {
+    text-align: center;
+    margin-bottom: 15px;
 }
 
 .score-circle {
@@ -582,6 +624,7 @@ h3 {
     padding: 10px;
     box-sizing: border-box;
     clip-path: polygon(0 0, 100% 0, 50% 100%);
+    border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .roulette-slice:nth-child(1) { transform: rotate(0deg); }
@@ -697,8 +740,9 @@ h3 {
     .roulette-container,
     .prize-container,
     .share-container {
-        padding: 20px;
+        padding: 25px 20px;
         margin: 10px;
+        max-width: 100%;
     }
 
     h1 {
@@ -711,21 +755,78 @@ h3 {
 
     .quiz-header {
         flex-direction: column;
-        gap: 15px;
+        gap: 20px;
+        text-align: center;
     }
 
-    .circular-timer {
-        width: 50px;
-        height: 50px;
+    .progress-info {
+        order: 1;
+        font-size: 1rem;
     }
+
+    .timer-container {
+        order: 2;
+    }
+
+    .timer {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .timer-number {
+        font-size: 1.3rem;
+        transform: translate(-50%, -50%);
+    }
+    
+
 
     .timer-text {
         font-size: 1rem;
     }
 
+    #question-text {
+        font-size: 1.2rem;
+        padding: 0 5px;
+    }
+
+    .options-container {
+        gap: 15px;
+        padding: 0 5px;
+    }
+
+    .option-btn {
+        padding: 15px 18px;
+        min-height: 55px;
+    }
+
+    .option-letter {
+        width: 32px;
+        height: 32px;
+        margin-right: 15px;
+    }
+
+    .option-text {
+        font-size: 1rem;
+    }
+
+    .explanation {
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    #next-question-btn {
+        padding: 10px 25px;
+        font-size: 1rem;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: fit-content;
+    }
+
     .result-info {
         flex-direction: column;
         gap: 20px;
+        text-align: center;
     }
 
     .roulette-wrapper {
@@ -750,54 +851,127 @@ h3 {
 
 @media (max-width: 480px) {
     .screen {
-        padding: 10px;
+        padding: 8px;
         padding-top: 80px;
         padding-bottom: 80px;
     }
 
+    .welcome-container,
+    .home-container,
+    .institutional-container,
+    .quiz-container,
+    .result-container,
+    .roulette-container,
+    .prize-container,
+    .share-container {
+        padding: 20px 15px;
+        margin: 5px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+
     .btn-primary {
-        padding: 12px 24px;
-        font-size: 1rem;
+        padding: 12px 20px;
+        font-size: 0.95rem;
+        margin: 8px;
+    }
+
+    .quiz-header {
+        padding: 15px;
+        gap: 15px;
+    }
+
+    .progress-info {
+        font-size: 0.9rem;
+    }
+
+    .timer {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .timer-number {
+        font-size: 1.1rem;
+        transform: translate(-50%, -50%);
+    }
+    
+
+
+    #question-text {
+        font-size: 1.1rem;
+        margin-bottom: 25px;
+        padding: 0;
+    }
+
+    .options-container {
+        gap: 12px;
+        padding: 0;
     }
 
     .option-btn {
         padding: 12px 15px;
+        min-height: 50px;
     }
 
-    .score-circle {
-        width: 100px;
-        height: 100px;
-    }
-
-    #final-score {
-        font-size: 2rem;
-    }
-
-    .roulette-wrapper {
-        width: 200px;
-        height: 200px;
-    }
-
-    .roulette-slice {
+    .option-letter {
+        width: 28px;
+        height: 28px;
+        margin-right: 12px;
         font-size: 0.8rem;
     }
 
-    .key {
-        padding: 8px 4px;
+    .option-text {
+        font-size: 0.95rem;
+    }
+
+    .explanation {
+        padding: 15px;
+        margin-top: 15px;
+    }
+
+    #next-question-btn {
+        padding: 8px 20px;
+        font-size: 0.9rem;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: fit-content;
+    }
+
+    .score-circle {
+        width: 90px;
+        height: 90px;
+    }
+
+    #final-score {
+        font-size: 1.8rem;
+    }
+
+    .roulette-wrapper {
+        width: 180px;
+        height: 180px;
+    }
+
+    .roulette-slice {
         font-size: 0.7rem;
-        min-width: 25px;
+        padding: 5px;
+    }
+
+    .key {
+        padding: 6px 3px;
+        font-size: 0.65rem;
+        min-width: 22px;
     }
 
     .key.special {
-        min-width: 60px;
-    }
-
-    .circular-timer {
-        width: 40px;
-        height: 40px;
-    }
-
-    .timer-text {
-        font-size: 0.9rem;
+        min-width: 55px;
+        font-size: 0.6rem;
     }
 } 

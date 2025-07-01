@@ -203,8 +203,9 @@ function loadQuestion() {
         btn.disabled = false;
     });
     
-    // Esconde a explicação
+    // Esconde a explicação e botão de próxima pergunta
     document.getElementById('explanation').style.display = 'none';
+    document.getElementById('next-question-btn').style.display = 'none';
     
     // Reseta e inicia o cronômetro
     resetTimer();
@@ -213,23 +214,28 @@ function loadQuestion() {
 
 // Função para resetar o cronômetro
 function resetTimer() {
-    const timerSeconds = document.getElementById('timer-seconds');
-    const timerProgressRing = document.querySelector('.timer-progress-ring');
+    const timerProgressCircle = document.querySelector('.timer-progress-circle');
+    const timerNumber = document.getElementById('timer-seconds');
     
     // Reseta o texto
-    timerSeconds.textContent = '15';
+    timerNumber.textContent = '15';
     
-    // Reseta a animação
-    timerProgressRing.style.animation = 'none';
-    timerProgressRing.offsetHeight; // Força reflow
-    timerProgressRing.style.animation = 'timer-empty 15s linear infinite';
+    // Reseta a animação circular (círculo completo)
+    timerProgressCircle.style.strokeDashoffset = '0';
+    
+    // Adiciona efeito de pulse
+    timerNumber.style.transform = 'translate(-50%, -50%) scale(1.1)';
+    setTimeout(() => {
+        timerNumber.style.transform = 'translate(-50%, -50%) scale(1)';
+    }, 200);
 }
 
 // Função para iniciar o cronômetro
 function startTimer() {
     let timeLeft = 15;
-    const timerSeconds = document.getElementById('timer-seconds');
-    const timerProgressRing = document.querySelector('.timer-progress-ring');
+    let startTime = Date.now();
+    const timerNumber = document.getElementById('timer-seconds');
+    const timerProgressCircle = document.querySelector('.timer-progress-circle');
     
     // Cancela timers anteriores se existirem
     if (timerTimeout) {
@@ -244,19 +250,33 @@ function startTimer() {
         handleAnswer(null); // Tempo esgotado
     }, 15000);
     
-    // Atualiza a contagem e a animação a cada segundo
-    timerInterval = setInterval(() => {
-        timeLeft--;
-        timerSeconds.textContent = timeLeft;
+    // Função de animação suave
+    function animateTimer() {
+        const elapsed = (Date.now() - startTime) / 1000;
+        const remaining = Math.max(0, 15 - elapsed);
         
-        // Atualiza o clip-path para esvaziar progressivamente
-        const progress = (timeLeft / 15) * 50; // 50% é o raio máximo
-        timerProgressRing.style.clipPath = `circle(${progress}% at center)`;
-        
-        if (timeLeft <= 0) {
-            clearInterval(timerInterval);
+        // Atualiza o número apenas quando muda
+        const currentTime = Math.ceil(remaining);
+        if (currentTime !== timeLeft) {
+            timeLeft = currentTime;
+            animateNumber(timerNumber, timeLeft);
         }
-    }, 1000);
+        
+        // Atualiza a animação circular como um relógio
+        // O círculo começa cheio às 12h e vai esvaziando no sentido horário
+        const circumference = 282.743;
+        const progress = remaining / 15; // 0 a 1
+        // strokeDashoffset aumenta conforme o tempo passa (círculo vai esvaziando)
+        const strokeDashoffset = circumference * (1 - progress);
+        timerProgressCircle.style.strokeDashoffset = strokeDashoffset;
+        
+        if (remaining > 0) {
+            requestAnimationFrame(animateTimer);
+        }
+    }
+    
+    // Inicia a animação
+    requestAnimationFrame(animateTimer);
 }
 
 // Função para processar a resposta do usuário
@@ -293,14 +313,17 @@ function handleAnswer(selectedOption) {
         playSound('wrong-sound');
     }
     
-    // Mostra a explicação
+    // Mostra a explicação e botão de próxima pergunta
     const explanation = document.getElementById('explanation');
     const explanationText = document.getElementById('explanation-text');
+    const nextQuestionBtn = document.getElementById('next-question-btn');
+    
     explanationText.textContent = question.explanation;
     explanation.style.display = 'block';
+    nextQuestionBtn.style.display = 'block';
     
-    // Aguarda 5 segundos (aumentado de 3 para 5) e vai para a próxima pergunta
-    setTimeout(() => {
+    // Função para ir para a próxima pergunta
+    const goToNextQuestion = () => {
         gameState.currentQuestionIndex++;
         
         if (gameState.currentQuestionIndex < 5) {
@@ -308,7 +331,17 @@ function handleAnswer(selectedOption) {
         } else {
             showResult();
         }
-    }, 5000);
+    };
+    
+    // Event listener para o botão de próxima pergunta
+    nextQuestionBtn.onclick = goToNextQuestion;
+    
+    // Aguarda 8 segundos e vai para a próxima pergunta automaticamente
+    setTimeout(() => {
+        if (gameState.currentQuestionIndex < 5) {
+            goToNextQuestion();
+        }
+    }, 8000);
 }
 
 // Função para mostrar o resultado
@@ -513,6 +546,20 @@ function resetGame() {
     updateRanking();
 }
 
+// Função para animar a mudança do número
+function animateNumber(element, newTime) {
+    // Efeito de fade out suave
+    element.style.opacity = '0.3';
+    element.style.transform = 'scale(0.8)';
+    
+    // Após a animação, atualiza o número
+    setTimeout(() => {
+        element.textContent = newTime;
+        element.style.opacity = '1';
+        element.style.transform = 'scale(1)';
+    }, 100);
+}
+
 // Função para tocar sons
 function playSound(soundId) {
     const audio = document.getElementById(soundId);
@@ -587,8 +634,11 @@ function setupEventListeners() {
         document.getElementById('summary-prize').textContent = selectedPrize ? selectedPrize.name : '-';
     };
     
-    // Botão de reiniciar
-    document.getElementById('restart-btn').onclick = resetGame;
+    // Botão de encerrar quiz (volta para tela inicial)
+    document.getElementById('restart-btn').onclick = () => {
+        showScreen('#home-screen');
+        updateRanking();
+    };
 }
 
 // Inicializa a aplicação quando a página carrega

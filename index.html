@@ -61,13 +61,34 @@
                     <span id="question-counter">Pergunta 1 de 5</span>
                 </div>
                 <div class="timer-container">
-                    <div class="circular-timer">
-                        <div class="timer-circle">
-                            <div class="timer-progress-ring"></div>
-                            <div class="timer-text">
-                                <span id="timer-seconds">15</span>
-                            </div>
-                        </div>
+                    <div class="timer">
+                        <svg class="timer-svg" viewBox="0 0 100 100">
+                            <!-- Círculo de fundo -->
+                            <circle 
+                                class="timer-background" 
+                                cx="50" 
+                                cy="50" 
+                                r="45" 
+                                fill="none" 
+                                stroke="#e0e0e0" 
+                                stroke-width="8"
+                            />
+                            <!-- Círculo de progresso -->
+                            <circle 
+                                class="timer-progress-circle" 
+                                cx="50" 
+                                cy="50" 
+                                r="45" 
+                                fill="none" 
+                                stroke="#4CAF50" 
+                                stroke-width="8"
+                                stroke-linecap="round"
+                                stroke-dasharray="282.743"
+                                stroke-dashoffset="0"
+                                transform="rotate(-90 50 50)"
+                            />
+                        </svg>
+                        <div class="timer-number" id="timer-seconds">15</div>
                     </div>
                 </div>
             </div>
@@ -94,6 +115,7 @@
                 </div>
                 <div id="explanation" class="explanation" style="display: none;">
                     <p id="explanation-text"></p>
+                    <button id="next-question-btn" class="btn-primary" style="display: none;">Próxima Pergunta</button>
                 </div>
             </div>
         </div>
@@ -213,7 +235,7 @@
             <div class="social-info">
                 <p>Tire uma foto dessa tela e marque a gente no Instagram: <strong>@adubosreal</strong></p>
             </div>
-            <button id="restart-btn" class="btn-primary">Finalizar</button>
+            <button id="restart-btn" class="btn-primary">Encerrar quiz</button>
         </div>
     </div>
 
