@@ -10,13 +10,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="bg-particles">
+        <div class="bg-particle" style="width: 80px; height: 80px; left: 10vw; bottom: 5vh; animation-delay: 0s;"></div>
+        <div class="bg-particle" style="width: 50px; height: 50px; left: 60vw; bottom: 10vh; animation-delay: 2s;"></div>
+        <div class="bg-particle" style="width: 100px; height: 100px; left: 80vw; bottom: 0vh; animation-delay: 4s;"></div>
+        <div class="bg-particle" style="width: 60px; height: 60px; left: 30vw; bottom: 15vh; animation-delay: 1s;"></div>
+        <div class="bg-particle" style="width: 40px; height: 40px; left: 75vw; bottom: 20vh; animation-delay: 3s;"></div>
+    </div>
     <!-- Header fixo com logo centralizado -->
     <header class="fixed-header">
         <div class="header-content">
             <img src="assets/logo.png" alt="Adubos Real" class="header-logo">
         </div>
     </header>
-
+    <div class="app-content">
     <!-- Tela de Boas-Vindas -->
     <div id="welcome-screen" class="screen">
         <div class="welcome-container">
@@ -25,13 +32,12 @@
             <button id="start-challenge-btn" class="btn-primary">Começar o Desafio!</button>
         </div>
     </div>
-
     <!-- Tela Inicial e Ranking -->
     <div id="home-screen" class="screen">
         <div class="home-container">
             <h1>Desafio da Safra</h1>
             <div class="ranking-section">
-                <h2>🏆 Ranking dos Melhores</h2>
+                <h2>Ranking dos Melhores</h2>
                 <div id="ranking-list" class="ranking-list">
                     <!-- Ranking será populado dinamicamente -->
                 </div>
@@ -39,7 +45,6 @@
             <button id="participate-btn" class="btn-primary">Quero Participar!</button>
         </div>
     </div>
-
     <!-- Tela Institucional -->
     <div id="institutional-screen" class="screen">
         <div class="institutional-container">
@@ -52,7 +57,6 @@
             <button id="start-quiz-btn" class="btn-primary">Iniciar Quiz</button>
         </div>
     </div>
-
     <!-- Tela de Quiz -->
     <div id="quiz-screen" class="screen">
         <div class="quiz-container">
@@ -63,32 +67,10 @@
                 <div class="timer-container">
                     <div class="timer">
                         <svg class="timer-svg" viewBox="0 0 100 100">
-                            <!-- Círculo de fundo -->
-                            <circle 
-                                class="timer-background" 
-                                cx="50" 
-                                cy="50" 
-                                r="45" 
-                                fill="none" 
-                                stroke="#e0e0e0" 
-                                stroke-width="8"
-                            />
-                            <!-- Círculo de progresso -->
-                            <circle 
-                                class="timer-progress-circle" 
-                                cx="50" 
-                                cy="50" 
-                                r="45" 
-                                fill="none" 
-                                stroke="#4CAF50" 
-                                stroke-width="8"
-                                stroke-linecap="round"
-                                stroke-dasharray="282.743"
-                                stroke-dashoffset="0"
-                                transform="rotate(-90 50 50)"
-                            />
+                            <circle class="timer-bg" cx="50" cy="50" r="45" fill="none" stroke="#e0e0e0" stroke-width="8"/>
+                            <circle class="timer-fg" cx="50" cy="50" r="45" fill="none" stroke="#4CAF50" stroke-width="8" stroke-linecap="round" stroke-dasharray="282.743" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
                         </svg>
-                        <div class="timer-number" id="timer-seconds">15</div>
+                        <span class="timer-number" id="timer-seconds">15</span>
                     </div>
                 </div>
             </div>
@@ -120,12 +102,11 @@
             </div>
         </div>
     </div>
-
     <!-- Tela de Resultado -->
     <div id="result-screen" class="screen">
         <div class="result-container">
             <div class="confetti-container" id="confetti-container"></div>
-            <h1>🎉 Parabéns!</h1>
+            <h1>Parabéns!</h1>
             <div class="result-info">
                 <div class="score-display">
                     <h2>Seu Resultado</h2>
@@ -187,29 +168,21 @@
             </div>
         </div>
     </div>
-
     <!-- Tela da Roleta -->
     <div id="roulette-screen" class="screen">
         <div class="roulette-container">
-            <h1>🎰 Roleta de Prêmios</h1>
+            <h1>Roleta de Prêmios</h1>
             <div class="roulette-wrapper">
-                <div id="roulette" class="roulette">
-                    <div class="roulette-slice" style="--slice-color: #FF6B6B;">Kit 1</div>
-                    <div class="roulette-slice" style="--slice-color: #4ECDC4;">Kit 2</div>
-                    <div class="roulette-slice" style="--slice-color: #45B7D1;">Kit 3</div>
-                    <div class="roulette-slice" style="--slice-color: #96CEB4;">Kit 4</div>
-                    <div class="roulette-slice" style="--slice-color: #FFEAA7;">Kit 5</div>
-                </div>
+                <svg id="roulette-svg" class="roulette-svg" width="320" height="320" viewBox="0 0 320 320"></svg>
                 <div class="roulette-pointer"></div>
             </div>
             <button id="spin-btn" class="btn-primary">Girar a Roleta!</button>
         </div>
     </div>
-
     <!-- Tela de Confirmação do Prêmio -->
     <div id="prize-screen" class="screen">
         <div class="prize-container">
-            <h1>🎁 Parabéns!</h1>
+            <h1>Parabéns!</h1>
             <div class="prize-info">
                 <h2 id="player-name-display">Jogador</h2>
                 <p>Você ganhou:</p>
@@ -221,7 +194,6 @@
             <button id="finish-btn" class="btn-primary">Finalizar</button>
         </div>
     </div>
-
     <!-- Tela Final e Reset -->
     <div id="share-screen" class="screen">
         <div class="share-container">
@@ -238,17 +210,15 @@
             <button id="restart-btn" class="btn-primary">Encerrar quiz</button>
         </div>
     </div>
-
+    </div>
     <!-- Footer com botão cancelar -->
     <footer class="fixed-footer">
         <button class="cancel-btn" onclick="goToHome()">Cancelar</button>
     </footer>
-
     <!-- Sons -->
     <audio id="correct-sound" src="assets/correct.mp3"></audio>
     <audio id="wrong-sound" src="assets/wrong.mp3"></audio>
     <audio id="spin-sound" src="assets/spin.mp3"></audio>
-
     <script src="script.js"></script>
 </body>
 </html> 

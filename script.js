@@ -73,6 +73,124 @@ let rouletteFinalAngle;
 let selectedPrize;
 let isRouletteSpinning = false;
 
+// --- NOVO TIMER MINIMALISTA ---
+const TIMER_DURATION = 15; // segundos
+let timerStart;
+let timerRunning = false;
+
+function resetTimer() {
+    const circle = document.querySelector('.timer-fg');
+    const number = document.getElementById('timer-seconds');
+    const circumference = 2 * Math.PI * 45;
+    if (timerInterval) clearInterval(timerInterval);
+    timerRunning = false;
+    circle.style.strokeDasharray = circumference;
+    circle.style.strokeDashoffset = 0;
+    number.textContent = TIMER_DURATION;
+}
+
+function startTimer() {
+    const circle = document.querySelector('.timer-fg');
+    const number = document.getElementById('timer-seconds');
+    const circumference = 2 * Math.PI * 45;
+    let lastValue = TIMER_DURATION;
+    if (timerInterval) clearInterval(timerInterval);
+    timerStart = Date.now();
+    timerRunning = true;
+    function update() {
+        const elapsed = (Date.now() - timerStart) / 1000;
+        const remaining = Math.max(0, TIMER_DURATION - elapsed);
+        const progress = remaining / TIMER_DURATION;
+        circle.style.strokeDashoffset = circumference * (1 - progress);
+        const display = Math.ceil(remaining);
+        if (display !== lastValue) {
+            number.textContent = display;
+            lastValue = display;
+        }
+        if (remaining <= 0) {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            number.textContent = '0';
+            circle.style.strokeDashoffset = circumference;
+            // Chama handleAnswer(null) se for o quiz
+            if (typeof handleAnswer === 'function') handleAnswer(null);
+        }
+    }
+    timerInterval = setInterval(update, 30);
+    update();
+}
+// --- FIM NOVO TIMER ---
+
+// --- ROLETAS SVG UNIFORME ---
+const ROULETTE_COLORS = [
+  '#FF6B6B', '#FFA726', '#43A047', '#5C6BC0', '#FFD600', '#29B6F6', '#8D6E63', '#EC407A', '#66BB6A', '#AB47BC'
+];
+
+function drawRouletteSVG(prizes, angleOffset = 0) {
+  const svg = document.getElementById('roulette-svg');
+  if (!svg) return;
+  svg.innerHTML = '';
+  const cx = 160, cy = 160, r = 140, ir = 60;
+  const n = prizes.length;
+  const angleStep = 2 * Math.PI / n;
+  for (let i = 0; i < n; i++) {
+    const startAngle = i * angleStep + angleOffset;
+    const endAngle = (i + 1) * angleStep + angleOffset;
+    // Path para fatia
+    const x1 = cx + r * Math.cos(startAngle);
+    const y1 = cy + r * Math.sin(startAngle);
+    const x2 = cx + r * Math.cos(endAngle);
+    const y2 = cy + r * Math.sin(endAngle);
+    const ix1 = cx + ir * Math.cos(endAngle);
+    const iy1 = cy + ir * Math.sin(endAngle);
+    const ix2 = cx + ir * Math.cos(startAngle);
+    const iy2 = cy + ir * Math.sin(startAngle);
+    const largeArc = angleStep > Math.PI ? 1 : 0;
+    const path = [
+      `M ${ix2} ${iy2}`,
+      `L ${x1} ${y1}`,
+      `A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`,
+      `L ${ix1} ${iy1}`,
+      `A ${ir} ${ir} 0 ${largeArc} 0 ${ix2} ${iy2}`,
+      'Z'
+    ].join(' ');
+    const slice = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    slice.setAttribute('d', path);
+    slice.setAttribute('fill', ROULETTE_COLORS[i % ROULETTE_COLORS.length]);
+    svg.appendChild(slice);
+    // Texto
+    const midAngle = (startAngle + endAngle) / 2;
+    const tx = cx + 0.7 * r * Math.cos(midAngle);
+    const ty = cy + 0.7 * r * Math.sin(midAngle);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', tx);
+    text.setAttribute('y', ty);
+    text.setAttribute('fill', i % 2 === 0 ? '#fff' : '#222');
+    text.setAttribute('font-size', '20');
+    text.setAttribute('font-family', 'Montserrat, Arial, sans-serif');
+    text.setAttribute('font-weight', 'bold');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('alignment-baseline', 'middle');
+    text.setAttribute('transform', `rotate(${(midAngle * 180 / Math.PI)} ${tx} ${ty})`);
+    text.textContent = prizes[i];
+    svg.appendChild(text);
+  }
+}
+
+// Exemplo de integração com o quiz:
+function prepareRoulette() {
+  // Prêmios do quiz
+  const prizes = [
+    'Kit 1',
+    'Kit 2',
+    'Kit 3',
+    'Kit 4',
+    'Kit 5'
+  ];
+  drawRouletteSVG(prizes);
+}
+// --- FIM ROLETAS SVG ---
+
 // Função de inicialização - chamada na carga da página
 function init() {
     // Popula o array de perguntas (já está populado acima)
@@ -212,73 +330,6 @@ function loadQuestion() {
     startTimer();
 }
 
-// Função para resetar o cronômetro
-function resetTimer() {
-    const timerProgressCircle = document.querySelector('.timer-progress-circle');
-    const timerNumber = document.getElementById('timer-seconds');
-    
-    // Reseta o texto
-    timerNumber.textContent = '15';
-    
-    // Reseta a animação circular (círculo completo)
-    timerProgressCircle.style.strokeDashoffset = '0';
-    
-    // Adiciona efeito de pulse
-    timerNumber.style.transform = 'translate(-50%, -50%) scale(1.1)';
-    setTimeout(() => {
-        timerNumber.style.transform = 'translate(-50%, -50%) scale(1)';
-    }, 200);
-}
-
-// Função para iniciar o cronômetro
-function startTimer() {
-    let timeLeft = 15;
-    let startTime = Date.now();
-    const timerNumber = document.getElementById('timer-seconds');
-    const timerProgressCircle = document.querySelector('.timer-progress-circle');
-    
-    // Cancela timers anteriores se existirem
-    if (timerTimeout) {
-        clearTimeout(timerTimeout);
-    }
-    if (timerInterval) {
-        clearInterval(timerInterval);
-    }
-    
-    // Inicia o timer de 15 segundos
-    timerTimeout = setTimeout(() => {
-        handleAnswer(null); // Tempo esgotado
-    }, 15000);
-    
-    // Função de animação suave
-    function animateTimer() {
-        const elapsed = (Date.now() - startTime) / 1000;
-        const remaining = Math.max(0, 15 - elapsed);
-        
-        // Atualiza o número apenas quando muda
-        const currentTime = Math.ceil(remaining);
-        if (currentTime !== timeLeft) {
-            timeLeft = currentTime;
-            animateNumber(timerNumber, timeLeft);
-        }
-        
-        // Atualiza a animação circular como um relógio
-        // O círculo começa cheio às 12h e vai esvaziando no sentido horário
-        const circumference = 282.743;
-        const progress = remaining / 15; // 0 a 1
-        // strokeDashoffset aumenta conforme o tempo passa (círculo vai esvaziando)
-        const strokeDashoffset = circumference * (1 - progress);
-        timerProgressCircle.style.strokeDashoffset = strokeDashoffset;
-        
-        if (remaining > 0) {
-            requestAnimationFrame(animateTimer);
-        }
-    }
-    
-    // Inicia a animação
-    requestAnimationFrame(animateTimer);
-}
-
 // Função para processar a resposta do usuário
 function handleAnswer(selectedOption) {
     // Cancela os timers
@@ -405,48 +456,6 @@ function saveAndProceed() {
     prepareRoulette();
 }
 
-// Função para preparar a roleta
-function prepareRoulette() {
-    // Reseta o estado da roleta
-    isRouletteSpinning = false;
-    
-    // Define as fatias da roleta baseado no score
-    const prizes = [
-        { name: 'Kit 1', description: 'Amostra de adubo + brinde' },
-        { name: 'Kit 2', description: 'Amostra + boné + camiseta' },
-        { name: 'Kit 3', description: 'Kit completo + consultoria' },
-        { name: 'Kit 4', description: 'Kit premium + visita técnica' },
-        { name: 'Kit 5', description: 'Kit especial + desconto exclusivo' }
-    ];
-    
-    // Calcula o prêmio baseado no score
-    let prizeIndex;
-    if (gameState.score <= 1) {
-        prizeIndex = 0; // Kit 1
-    } else if (gameState.score === 2) {
-        prizeIndex = 1; // Kit 2
-    } else if (gameState.score === 3) {
-        prizeIndex = 2; // Kit 3
-    } else if (gameState.score === 4) {
-        prizeIndex = 3; // Kit 4
-    } else {
-        prizeIndex = 4; // Kit 5
-    }
-    
-    selectedPrize = prizes[prizeIndex];
-    
-    // Calcula o ângulo final (cada fatia tem 72 graus)
-    const sliceAngle = 72;
-    const targetAngle = prizeIndex * sliceAngle;
-    
-    // Adiciona voltas extras para efeito dramático
-    rouletteFinalAngle = targetAngle + (360 * 5); // 5 voltas + ângulo final
-    
-    // Reativa o botão de girar
-    const spinBtn = document.getElementById('spin-btn');
-    spinBtn.disabled = false;
-}
-
 // Função para girar a roleta
 function spinRoulette() {
     if (isRouletteSpinning) {
@@ -544,20 +553,6 @@ function resetGame() {
     // Vai para a tela inicial
     showScreen('#home-screen');
     updateRanking();
-}
-
-// Função para animar a mudança do número
-function animateNumber(element, newTime) {
-    // Efeito de fade out suave
-    element.style.opacity = '0.3';
-    element.style.transform = 'scale(0.8)';
-    
-    // Após a animação, atualiza o número
-    setTimeout(() => {
-        element.textContent = newTime;
-        element.style.opacity = '1';
-        element.style.transform = 'scale(1)';
-    }, 100);
 }
 
 // Função para tocar sons
