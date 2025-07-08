@@ -17,12 +17,6 @@
         <div class="bg-particle" style="width: 60px; height: 60px; left: 30vw; bottom: 15vh; animation-delay: 1s;"></div>
         <div class="bg-particle" style="width: 40px; height: 40px; left: 75vw; bottom: 20vh; animation-delay: 3s;"></div>
     </div>
-    <!-- Header fixo com logo centralizado -->
-    <header class="fixed-header">
-        <div class="header-content">
-            <img src="assets/logo.png" alt="Adubos Real" class="header-logo">
-        </div>
-    </header>
     <div class="app-content">
     <!-- Tela de Boas-Vindas -->
     <div id="welcome-screen" class="screen">
@@ -60,6 +54,11 @@
     <!-- Tela de Quiz -->
     <div id="quiz-screen" class="screen">
         <div class="quiz-container">
+            <!-- Logo no topo -->
+            <div class="screen-logo">
+                <img src="assets/logo.png" alt="Adubos Real" class="header-logo">
+            </div>
+            
             <div class="quiz-header">
                 <div class="progress-info">
                     <span id="question-counter">Pergunta 1 de 5</span>
@@ -99,6 +98,11 @@
                     <p id="explanation-text"></p>
                     <button id="next-question-btn" class="btn-primary" style="display: none;">Próxima Pergunta</button>
                 </div>
+            </div>
+            
+            <!-- Botão cancelar no final -->
+            <div class="quiz-footer">
+                <button class="cancel-btn" onclick="goToHome()">Cancelar</button>
             </div>
         </div>
     </div>
@@ -211,10 +215,6 @@
         </div>
     </div>
     </div>
-    <!-- Footer com botão cancelar -->
-    <footer class="fixed-footer">
-        <button class="cancel-btn" onclick="goToHome()">Cancelar</button>
-    </footer>
     <!-- Sons -->
     <audio id="correct-sound" src="assets/correct.mp3"></audio>
     <audio id="wrong-sound" src="assets/wrong.mp3"></audio>

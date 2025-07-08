@@ -65,6 +65,15 @@ let gameState = {
     ]
 };
 
+// Lista de prêmios para a roleta
+const ROULETTE_PRIZES = [
+    { name: "Kit Fertilizante Premium", description: "Kit completo de fertilizantes para 1 hectare de café" },
+    { name: "Consultoria Técnica", description: "1 hora de consultoria técnica especializada" },
+    { name: "Amostra Gratuita", description: "Amostra de fertilizante para teste" },
+    { name: "Desconto 20%", description: "20% de desconto na próxima compra" },
+    { name: "Kit Básico", description: "Kit básico de nutrição para café" }
+];
+
 // Variáveis globais
 let timerTimeout;
 let timerInterval;
@@ -72,6 +81,7 @@ let currentTimerProgress;
 let rouletteFinalAngle;
 let selectedPrize;
 let isRouletteSpinning = false;
+let isAnswerProcessed = false;
 
 // --- NOVO TIMER MINIMALISTA ---
 const TIMER_DURATION = 15; // segundos
@@ -81,6 +91,8 @@ let timerRunning = false;
 function resetTimer() {
     const circle = document.querySelector('.timer-fg');
     const number = document.getElementById('timer-seconds');
+    if (!circle || !number) return;
+    
     const circumference = 2 * Math.PI * 45;
     if (timerInterval) clearInterval(timerInterval);
     timerRunning = false;
@@ -92,11 +104,14 @@ function resetTimer() {
 function startTimer() {
     const circle = document.querySelector('.timer-fg');
     const number = document.getElementById('timer-seconds');
+    if (!circle || !number) return;
+    
     const circumference = 2 * Math.PI * 45;
     let lastValue = TIMER_DURATION;
     if (timerInterval) clearInterval(timerInterval);
     timerStart = Date.now();
     timerRunning = true;
+    
     function update() {
         const elapsed = (Date.now() - timerStart) / 1000;
         const remaining = Math.max(0, TIMER_DURATION - elapsed);
@@ -112,8 +127,10 @@ function startTimer() {
             timerRunning = false;
             number.textContent = '0';
             circle.style.strokeDashoffset = circumference;
-            // Chama handleAnswer(null) se for o quiz
-            if (typeof handleAnswer === 'function') handleAnswer(null);
+            // Chama handleAnswer(null) se for o quiz e não estiver já processando
+            if (typeof handleAnswer === 'function' && !isAnswerProcessed) {
+                handleAnswer(null);
+            }
         }
     }
     timerInterval = setInterval(update, 30);
@@ -133,6 +150,7 @@ function drawRouletteSVG(prizes, angleOffset = 0) {
   const cx = 160, cy = 160, r = 140, ir = 60;
   const n = prizes.length;
   const angleStep = 2 * Math.PI / n;
+  
   for (let i = 0; i < n; i++) {
     const startAngle = i * angleStep + angleOffset;
     const endAngle = (i + 1) * angleStep + angleOffset;
@@ -166,7 +184,7 @@ function drawRouletteSVG(prizes, angleOffset = 0) {
     text.setAttribute('x', tx);
     text.setAttribute('y', ty);
     text.setAttribute('fill', i % 2 === 0 ? '#fff' : '#222');
-    text.setAttribute('font-size', '20');
+    text.setAttribute('font-size', '16');
     text.setAttribute('font-family', 'Montserrat, Arial, sans-serif');
     text.setAttribute('font-weight', 'bold');
     text.setAttribute('text-anchor', 'middle');
@@ -180,14 +198,14 @@ function drawRouletteSVG(prizes, angleOffset = 0) {
 // Exemplo de integração com o quiz:
 function prepareRoulette() {
   // Prêmios do quiz
-  const prizes = [
-    'Kit 1',
-    'Kit 2',
-    'Kit 3',
-    'Kit 4',
-    'Kit 5'
-  ];
+  const prizes = ROULETTE_PRIZES.map(prize => prize.name);
   drawRouletteSVG(prizes);
+  
+  // Adiciona transição CSS dinamicamente
+  const svg = document.getElementById('roulette-svg');
+  if (svg) {
+    svg.style.transition = 'transform 4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  }
 }
 // --- FIM ROLETAS SVG ---
 
@@ -239,6 +257,11 @@ function goToHome() {
 // Função para atualizar o ranking
 function updateRanking() {
     const rankingList = document.getElementById('ranking-list');
+    if (!rankingList) {
+        console.log('Lista de ranking não encontrada');
+        return;
+    }
+    
     const rankings = getRankings();
     
     rankingList.innerHTML = '';
@@ -294,6 +317,7 @@ function startQuiz() {
     gameState.score = 0;
     gameState.currentQuestionIndex = 0;
     gameState.startTime = new Date();
+    isAnswerProcessed = false;
     
     // Mostra a tela do quiz
     showScreen('#quiz-screen');
@@ -306,24 +330,38 @@ function startQuiz() {
 function loadQuestion() {
     const question = gameState.questions[gameState.currentQuestionIndex];
     
+    // Reseta o estado de processamento para nova pergunta
+    isAnswerProcessed = false;
+    
     // Atualiza o contador de perguntas
-    document.getElementById('question-counter').textContent = 
-        `Pergunta ${gameState.currentQuestionIndex + 1} de 5`;
+    const questionCounter = document.getElementById('question-counter');
+    if (questionCounter) {
+        questionCounter.textContent = `Pergunta ${gameState.currentQuestionIndex + 1} de 5`;
+    }
     
     // Carrega a pergunta
-    document.getElementById('question-text').textContent = question.question;
+    const questionText = document.getElementById('question-text');
+    if (questionText) {
+        questionText.textContent = question.question;
+    }
     
     // Carrega as opções
     const optionButtons = document.querySelectorAll('.option-btn');
     optionButtons.forEach((btn, index) => {
-        btn.querySelector('.option-text').textContent = question.options[index];
+        const optionText = btn.querySelector('.option-text');
+        if (optionText) {
+            optionText.textContent = question.options[index];
+        }
         btn.classList.remove('correct', 'wrong');
         btn.disabled = false;
     });
     
     // Esconde a explicação e botão de próxima pergunta
-    document.getElementById('explanation').style.display = 'none';
-    document.getElementById('next-question-btn').style.display = 'none';
+    const explanation = document.getElementById('explanation');
+    const nextQuestionBtn = document.getElementById('next-question-btn');
+    
+    if (explanation) explanation.style.display = 'none';
+    if (nextQuestionBtn) nextQuestionBtn.style.display = 'none';
     
     // Reseta e inicia o cronômetro
     resetTimer();
@@ -332,6 +370,12 @@ function loadQuestion() {
 
 // Função para processar a resposta do usuário
 function handleAnswer(selectedOption) {
+    // Evita processamento duplo
+    if (isAnswerProcessed) {
+        return;
+    }
+    isAnswerProcessed = true;
+    
     // Cancela os timers
     if (timerTimeout) {
         clearTimeout(timerTimeout);
@@ -369,13 +413,14 @@ function handleAnswer(selectedOption) {
     const explanationText = document.getElementById('explanation-text');
     const nextQuestionBtn = document.getElementById('next-question-btn');
     
-    explanationText.textContent = question.explanation;
-    explanation.style.display = 'block';
-    nextQuestionBtn.style.display = 'block';
+    if (explanationText) explanationText.textContent = question.explanation;
+    if (explanation) explanation.style.display = 'block';
+    if (nextQuestionBtn) nextQuestionBtn.style.display = 'block';
     
     // Função para ir para a próxima pergunta
     const goToNextQuestion = () => {
         gameState.currentQuestionIndex++;
+        isAnswerProcessed = false; // Reseta para próxima pergunta
         
         if (gameState.currentQuestionIndex < 5) {
             loadQuestion();
@@ -387,12 +432,14 @@ function handleAnswer(selectedOption) {
     // Event listener para o botão de próxima pergunta
     nextQuestionBtn.onclick = goToNextQuestion;
     
-    // Aguarda 8 segundos e vai para a próxima pergunta automaticamente
-    setTimeout(() => {
+    // Aguarda 10 segundos e vai para a próxima pergunta automaticamente
+    // Usa timerTimeout para evitar conflitos
+    if (timerTimeout) clearTimeout(timerTimeout);
+    timerTimeout = setTimeout(() => {
         if (gameState.currentQuestionIndex < 5) {
             goToNextQuestion();
         }
-    }, 8000);
+    }, 10000); // Aumentado para 10 segundos para dar mais tempo
 }
 
 // Função para mostrar o resultado
@@ -407,8 +454,18 @@ function showResult() {
     showScreen('#result-screen');
     
     // Popula os dados
-    document.getElementById('final-score').textContent = gameState.score;
-    document.getElementById('total-time').textContent = totalTime;
+    const finalScore = document.getElementById('final-score');
+    const totalTimeElement = document.getElementById('total-time');
+    
+    if (finalScore) finalScore.textContent = gameState.score;
+    if (totalTimeElement) totalTimeElement.textContent = totalTime;
+    
+    // Limpa o campo de nome para nova entrada
+    const playerNameInput = document.getElementById('player-name');
+    if (playerNameInput) {
+        playerNameInput.value = '';
+        playerNameInput.classList.remove('error');
+    }
     
     // Ativa a animação de confetes
     createConfetti();
@@ -434,16 +491,22 @@ function createConfetti() {
 
 // Função para salvar dados e prosseguir
 function saveAndProceed() {
-    const playerName = document.getElementById('player-name').value.trim();
+    const playerNameInput = document.getElementById('player-name');
+    if (!playerNameInput) {
+        console.error('Campo de nome não encontrado');
+        return;
+    }
+    
+    const playerName = playerNameInput.value.trim();
     
     // Validação do nome
     if (playerName.length < 3) {
-        document.getElementById('player-name').classList.add('error');
+        playerNameInput.classList.add('error');
         return;
     }
     
     // Remove erro se existir
-    document.getElementById('player-name').classList.remove('error');
+    playerNameInput.classList.remove('error');
     
     // Salva os dados
     gameState.playerName = playerName;
@@ -462,17 +525,32 @@ function spinRoulette() {
         return; // Evita múltiplos cliques
     }
     
-    const roulette = document.getElementById('roulette');
+    const roulette = document.getElementById('roulette-svg');
     const spinBtn = document.getElementById('spin-btn');
+    
+    if (!roulette || !spinBtn) {
+        console.error('Elementos da roleta não encontrados');
+        return;
+    }
     
     // Marca como girando
     isRouletteSpinning = true;
     
     // Desabilita o botão
     spinBtn.disabled = true;
+    spinBtn.textContent = 'Girando...';
     
     // Toca o som
     playSound('spin-sound');
+    
+    // Calcula o ângulo final (múltiplas voltas + posição do prêmio)
+    const spins = 5 + Math.random() * 5; // 5-10 voltas
+    const prizeIndex = Math.floor(Math.random() * ROULETTE_PRIZES.length);
+    const prizeAngle = (360 / ROULETTE_PRIZES.length) * prizeIndex;
+    rouletteFinalAngle = spins * 360 + prizeAngle;
+    
+    // Seleciona o prêmio
+    selectedPrize = ROULETTE_PRIZES[prizeIndex];
     
     // Aplica a rotação
     roulette.style.transform = `rotate(${rouletteFinalAngle}deg)`;
@@ -484,6 +562,8 @@ function spinRoulette() {
         // Pequeno delay para garantir que a animação terminou
         setTimeout(() => {
             isRouletteSpinning = false;
+            spinBtn.disabled = false;
+            spinBtn.textContent = 'Girar a Roleta!';
             showPrize();
         }, 500);
     };
@@ -494,6 +574,8 @@ function spinRoulette() {
     setTimeout(() => {
         if (isRouletteSpinning) {
             isRouletteSpinning = false;
+            spinBtn.disabled = false;
+            spinBtn.textContent = 'Girar a Roleta!';
             showPrize();
         }
     }, 5000); // 5 segundos de timeout
@@ -505,8 +587,14 @@ function showPrize() {
     
     // Popula os dados do prêmio
     document.getElementById('player-name-display').textContent = gameState.playerName;
-    document.getElementById('prize-name').textContent = selectedPrize.name;
-    document.getElementById('prize-description').textContent = selectedPrize.description;
+    
+    if (selectedPrize) {
+        document.getElementById('prize-name').textContent = selectedPrize.name;
+        document.getElementById('prize-description').textContent = selectedPrize.description;
+    } else {
+        document.getElementById('prize-name').textContent = 'Prêmio Especial';
+        document.getElementById('prize-description').textContent = 'Parabéns por participar do desafio!';
+    }
 }
 
 // Função para resetar o jogo
@@ -519,10 +607,14 @@ function resetGame() {
     gameState.endTime = null;
     gameState.playerName = '';
     isRouletteSpinning = false;
+    isAnswerProcessed = false;
     
     // Limpa os campos do formulário
-    document.getElementById('player-name').value = '';
-    document.getElementById('player-name').classList.remove('error');
+    const playerNameInput = document.getElementById('player-name');
+    if (playerNameInput) {
+        playerNameInput.value = '';
+        playerNameInput.classList.remove('error');
+    }
     
     // Remove classes de estado da UI
     document.querySelectorAll('.option-btn').forEach(btn => {
@@ -531,14 +623,26 @@ function resetGame() {
     });
     
     // Esconde elementos temporários
-    document.getElementById('explanation').style.display = 'none';
+    const explanation = document.getElementById('explanation');
+    if (explanation) {
+        explanation.style.display = 'none';
+    }
     
     // Para a animação de confetes
-    document.getElementById('confetti-container').innerHTML = '';
+    const confettiContainer = document.getElementById('confetti-container');
+    if (confettiContainer) {
+        confettiContainer.innerHTML = '';
+    }
     
     // Reseta a roleta
-    const roulette = document.getElementById('roulette');
-    roulette.style.transform = 'rotate(0deg)';
+    const roulette = document.getElementById('roulette-svg');
+    if (roulette) {
+        roulette.style.transform = 'rotate(0deg)';
+        roulette.style.transition = 'none';
+        // Força um reflow para aplicar a mudança imediatamente
+        roulette.offsetHeight;
+        roulette.style.transition = 'transform 4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    }
     
     // Cancela timers se existirem
     if (timerTimeout) {
@@ -561,6 +665,8 @@ function playSound(soundId) {
     if (audio) {
         audio.currentTime = 0;
         audio.play().catch(e => console.log('Erro ao tocar som:', e));
+    } else {
+        console.log(`Áudio ${soundId} não encontrado`);
     }
 }
 
@@ -568,6 +674,11 @@ function playSound(soundId) {
 function initVirtualKeyboard() {
     const keys = document.querySelectorAll('.key');
     const input = document.getElementById('player-name');
+    
+    if (!input) {
+        console.log('Campo de nome não encontrado');
+        return;
+    }
     
     keys.forEach(key => {
         key.addEventListener('click', () => {
@@ -592,15 +703,24 @@ function initVirtualKeyboard() {
 // Função para configurar event listeners
 function setupEventListeners() {
     // Botão de começar o desafio
-    document.getElementById('start-challenge-btn').onclick = () => {
-        showScreen('#home-screen');
-    };
+    const startChallengeBtn = document.getElementById('start-challenge-btn');
+    if (startChallengeBtn) {
+        startChallengeBtn.onclick = () => {
+            showScreen('#home-screen');
+        };
+    }
     
     // Botão de participar (vai para tela institucional)
-    document.getElementById('participate-btn').onclick = startGame;
+    const participateBtn = document.getElementById('participate-btn');
+    if (participateBtn) {
+        participateBtn.onclick = startGame;
+    }
     
     // Botão de iniciar quiz (após tela institucional)
-    document.getElementById('start-quiz-btn').onclick = startQuiz;
+    const startQuizBtn = document.getElementById('start-quiz-btn');
+    if (startQuizBtn) {
+        startQuizBtn.onclick = startQuiz;
+    }
     
     // Botões de opção do quiz
     document.querySelectorAll('.option-btn').forEach(btn => {
@@ -611,29 +731,49 @@ function setupEventListeners() {
     });
     
     // Botão de salvar e girar roleta
-    document.getElementById('save-and-spin-btn').onclick = saveAndProceed;
+    const saveAndSpinBtn = document.getElementById('save-and-spin-btn');
+    if (saveAndSpinBtn) {
+        saveAndSpinBtn.onclick = saveAndProceed;
+    }
     
     // Botão de girar roleta
-    document.getElementById('spin-btn').onclick = spinRoulette;
+    const spinBtn = document.getElementById('spin-btn');
+    if (spinBtn) {
+        spinBtn.onclick = spinRoulette;
+    }
     
     // Botão de finalizar
-    document.getElementById('finish-btn').onclick = () => {
-        showScreen('#share-screen');
-        // Popula o resumo final
-        document.getElementById('summary-score').textContent = gameState.score;
-        if (gameState.endTime && gameState.startTime) {
-            document.getElementById('summary-time').textContent = Math.round((gameState.endTime - gameState.startTime) / 1000);
-        } else {
-            document.getElementById('summary-time').textContent = '0';
-        }
-        document.getElementById('summary-prize').textContent = selectedPrize ? selectedPrize.name : '-';
-    };
+    const finishBtn = document.getElementById('finish-btn');
+    if (finishBtn) {
+        finishBtn.onclick = () => {
+            showScreen('#share-screen');
+            // Popula o resumo final
+            const summaryScore = document.getElementById('summary-score');
+            const summaryTime = document.getElementById('summary-time');
+            const summaryPrize = document.getElementById('summary-prize');
+            
+            if (summaryScore) summaryScore.textContent = gameState.score;
+            if (summaryTime) {
+                if (gameState.endTime && gameState.startTime) {
+                    summaryTime.textContent = Math.round((gameState.endTime - gameState.startTime) / 1000);
+                } else {
+                    summaryTime.textContent = '0';
+                }
+            }
+            if (summaryPrize) {
+                summaryPrize.textContent = selectedPrize ? selectedPrize.name : '-';
+            }
+        };
+    }
     
     // Botão de encerrar quiz (volta para tela inicial)
-    document.getElementById('restart-btn').onclick = () => {
-        showScreen('#home-screen');
-        updateRanking();
-    };
+    const restartBtn = document.getElementById('restart-btn');
+    if (restartBtn) {
+        restartBtn.onclick = () => {
+            showScreen('#home-screen');
+            updateRanking();
+        };
+    }
 }
 
 // Inicializa a aplicação quando a página carrega
